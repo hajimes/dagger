@@ -42,7 +42,7 @@ public final class SetBinding<T> extends Binding<Set<T>> {
   private final Set<Binding<?>> contributors = new LinkedHashSet<Binding<?>>();
 
   public SetBinding(String key) {
-    super(key, null, false, null);
+    super(key, null, false, null, false, false);
   }
 
   @Override public void attach(Linker linker) {

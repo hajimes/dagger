@@ -16,6 +16,7 @@
 package dagger.internal.plugins.reflect;
 
 import dagger.Module;
+import dagger.Optional;
 import dagger.Provides;
 import dagger.internal.Binding;
 import dagger.internal.Keys;
@@ -40,7 +41,8 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
         annotation.staticInjections(),
         annotation.overrides(),
         annotation.includes(),
-        annotation.complete());
+        annotation.complete(),
+        annotation.strict());
     this.moduleClass = moduleClass;
   }
 
@@ -58,12 +60,13 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
         Provides provides = method.getAnnotation(Provides.class);
         if (provides != null) {
           String key = Keys.get(method.getGenericReturnType(), method.getAnnotations(), method);
+          boolean optional = method.getAnnotation(Optional.class) != null;
           switch (provides.type()) {
             case UNIQUE:
-              handleBindings(bindings, method, key);
+              handleBindings(bindings, method, key, optional);
               break;
             case SET:
-              handleSetBindings(bindings, method, key);
+              handleSetBindings(bindings, method, key, optional);
               break;
             default:
               throw new AssertionError("Unknown @Provides type " + provides.type());
@@ -73,14 +76,17 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
     }
   }
 
-  private <T> void handleBindings(Map<String, Binding<?>> bindings, Method method, String key) {
-    bindings.put(key, new ProviderMethodBinding<T>(method, key, module));
+  private <T> void handleBindings(Map<String, Binding<?>> bindings, Method method, String key,
+      boolean optional) {
+    bindings.put(key, new ProviderMethodBinding<T>(method, key, module, optional));
   }
 
-  private <T> void handleSetBindings(Map<String, Binding<?>> bindings, Method method, String key) {
+  private <T> void handleSetBindings(Map<String, Binding<?>> bindings, Method method, String key,
+      boolean optional) {
     String elementKey =
         Keys.getElementKey(method.getGenericReturnType(), method.getAnnotations(), method);
-    SetBinding.<T>add(bindings, elementKey, new ProviderMethodBinding<T>(method, key, module));
+    SetBinding.<T>add(bindings, elementKey, new ProviderMethodBinding<T>(method, key, module,
+        optional));
   }
 
   @Override protected Object newModule() {
@@ -106,11 +112,13 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
     private Binding<?>[] parameters;
     private final Method method;
     private final Object instance;
+    private final boolean optional;
 
-    public ProviderMethodBinding(Method method, String key, Object instance) {
-      super(key, null, method.isAnnotationPresent(Singleton.class), method);
+    public ProviderMethodBinding(Method method, String key, Object instance, boolean optional) {
+      super(key, null, method.isAnnotationPresent(Singleton.class), method, false, strict);
       this.method = method;
       this.instance = instance;
+      this.optional = optional;
       method.setAccessible(true);
     }
 

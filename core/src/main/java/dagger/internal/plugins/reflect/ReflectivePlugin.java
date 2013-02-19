@@ -30,8 +30,8 @@ import javax.inject.Inject;
  * Uses reflection to create bindings, module adapters and static injections.
  */
 public final class ReflectivePlugin implements Plugin {
-  @Override public Binding<?> getAtInjectBinding(
-      String key, String className, boolean mustBeInjectable) {
+  @Override public Binding<?> getAtInjectBinding(String key, String className,
+      boolean mustBeInjectable, boolean entryPoint, boolean strict) {
     Class<?> c;
     try {
       c = Class.forName(className);
@@ -43,7 +43,7 @@ public final class ReflectivePlugin implements Plugin {
       return null;
     }
 
-    return ReflectiveAtInjectBinding.create(c, mustBeInjectable);
+    return ReflectiveAtInjectBinding.create(c, mustBeInjectable, entryPoint, strict);
   }
 
   @SuppressWarnings("unchecked") // Runtime checks validate that the result type matches 'T'.

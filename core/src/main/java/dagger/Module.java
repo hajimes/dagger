@@ -60,4 +60,5 @@ public @interface Module {
    */
   boolean complete() default true;
 
+  boolean strict() default false;
 }

@@ -27,9 +27,18 @@ import java.util.List;
 public final class ProblemDetector {
   public void detectProblems(Collection<Binding<?>> bindings) {
     detectCircularDependencies(bindings, new ArrayList<Binding<?>>());
+    detectUnusedBinding(bindings);
   }
 
-  public void detectCircularDependencies(Collection<Binding<?>> bindings, List<Binding<?>> path) {
+  private void detectUnusedBinding(Collection<Binding<?>> bindings) {
+    for (Binding<?> binding : bindings) {
+      if (binding.isStrict() && !binding.dependedOn() && !binding.isEntryPoint()) {
+        throw new IllegalStateException(binding.toString() + " didn't have a link requested!");
+      }
+    }
+  }
+
+  private void detectCircularDependencies(Collection<Binding<?>> bindings, List<Binding<?>> path) {
     for (Binding<?> binding : bindings) {
       if (binding.isCycleFree()) {
         continue;

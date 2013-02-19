@@ -43,7 +43,7 @@ final class AtInjectBinding extends Binding<Object> {
   private AtInjectBinding(String provideKey, String membersKey,
       TypeElement type, List<String> keys, String supertypeKey) {
     super(provideKey, membersKey, type.getAnnotation(Singleton.class) != null,
-        type.getQualifiedName().toString());
+        type.getQualifiedName().toString(), false, false);
     this.type = type;
     this.keys = keys;
     this.bindings = new Binding<?>[keys.size()];
@@ -119,7 +119,8 @@ final class AtInjectBinding extends Binding<Object> {
       bindings[i] = linker.requestBinding(keys.get(i), requiredBy);
     }
     if (supertypeKey != null) {
-      supertypeBinding = linker.requestBinding(supertypeKey, requiredBy, false);
+      supertypeBinding = linker.requestBinding(supertypeKey, requiredBy, false, false, false);
+      // TODO right values for strict
     }
   }
 

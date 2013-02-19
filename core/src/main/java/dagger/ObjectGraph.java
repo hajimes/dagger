@@ -164,7 +164,7 @@ public final class ObjectGraph {
 
   private void linkEntryPoints() {
     for (Map.Entry<String, Class<?>> entry : entryPoints.entrySet()) {
-      linker.requestBinding(entry.getKey(), entry.getValue(), false);
+      linker.requestBinding(entry.getKey(), entry.getValue(), false, true, false);
     }
   }
 
@@ -258,11 +258,13 @@ public final class ObjectGraph {
           + ". You must explicitly add an entry point to one of your modules.");
     }
 
+    boolean strict = false; //TODO
+
     synchronized (linker) {
-      Binding<?> binding = linker.requestBinding(key, moduleClass, false);
+      Binding<?> binding = linker.requestBinding(key, moduleClass, false, false, strict);
       if (binding == null || !binding.isLinked()) {
         linker.linkRequested();
-        binding = linker.requestBinding(key, moduleClass, false);
+        binding = linker.requestBinding(key, moduleClass, false, false, strict);
       }
       return binding;
     }

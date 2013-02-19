@@ -53,8 +53,8 @@ final class ReflectiveAtInjectBinding<T> extends Binding<T> {
    */
   private ReflectiveAtInjectBinding(String provideKey, String membersKey, boolean singleton,
       Class<?> type, Field[] fields, Constructor<T> constructor, int parameterCount,
-      Class<?> supertype, String[] keys) {
-    super(provideKey, membersKey, singleton, type);
+      Class<?> supertype, String[] keys, boolean entryPoint, boolean strict) {
+    super(provideKey, membersKey, singleton, type, entryPoint, strict);
     this.constructor = constructor;
     this.fields = fields;
     this.supertype = supertype;
@@ -81,7 +81,8 @@ final class ReflectiveAtInjectBinding<T> extends Binding<T> {
       }
     }
     if (supertype != null && supertypeBinding == null) {
-      supertypeBinding = (Binding<? super T>) linker.requestBinding(keys[k], membersKey, false);
+      supertypeBinding =
+          (Binding<? super T>) linker.requestBinding(keys[k], membersKey, false, false, false);
     }
   }
 
@@ -145,7 +146,8 @@ final class ReflectiveAtInjectBinding<T> extends Binding<T> {
    * @param mustBeInjectable true if the binding must have {@code @Inject}
    *     annotations.
    */
-  public static <T> Binding<T> create(Class<T> type, boolean mustBeInjectable) {
+  public static <T> Binding<T> create(Class<T> type, boolean mustBeInjectable, boolean entryPoint,
+      boolean strict) {
     boolean singleton = type.isAnnotationPresent(Singleton.class);
     List<String> keys = new ArrayList<String>();
 
@@ -220,7 +222,7 @@ final class ReflectiveAtInjectBinding<T> extends Binding<T> {
     String membersKey = Keys.getMembersKey(type);
     return new ReflectiveAtInjectBinding<T>(provideKey, membersKey, singleton, type,
         injectedFields.toArray(new Field[injectedFields.size()]), injectedConstructor,
-        parameterCount, supertype, keys.toArray(new String[keys.size()]));
+        parameterCount, supertype, keys.toArray(new String[keys.size()]), entryPoint, strict);
   }
 
   @SuppressWarnings("unchecked") // Class.getDeclaredConstructors is an unsafe API.

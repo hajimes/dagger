@@ -16,6 +16,7 @@
 package dagger.internal.codegen;
 
 import dagger.Module;
+import dagger.Optional;
 import dagger.Provides;
 import dagger.internal.Binding;
 import dagger.internal.Linker;
@@ -120,12 +121,13 @@ public final class FullGraphProcessor extends AbstractProcessor {
       for (TypeElement module : allModules.values()) {
         Map<String, Object> annotation = CodeGen.getAnnotation(Module.class, module);
         boolean overrides = (Boolean) annotation.get("overrides");
+        boolean strict = (Boolean) annotation.get("strict");
         Map<String, Binding<?>> addTo = overrides ? overrideBindings : baseBindings;
 
         // Gather the entry points from the annotation.
         for (Object entryPoint : (Object[]) annotation.get("entryPoints")) {
           linker.requestBinding(GeneratorKeys.rawMembersKey((TypeMirror) entryPoint),
-              module.getQualifiedName().toString(), false);
+              module.getQualifiedName().toString(), false, true, strict);
         }
 
         // Gather the static injections.
@@ -134,12 +136,14 @@ public final class FullGraphProcessor extends AbstractProcessor {
         // Gather the enclosed @Provides methods.
         for (Element enclosed : module.getEnclosedElements()) {
           Provides provides = enclosed.getAnnotation(Provides.class);
+          boolean optional = enclosed.getAnnotation(Optional.class) != null;
           if (provides == null) {
             continue;
           }
           ExecutableElement providerMethod = (ExecutableElement) enclosed;
           String key = GeneratorKeys.get(providerMethod);
-          ProviderMethodBinding binding = new ProviderMethodBinding(key, providerMethod);
+          ProviderMethodBinding binding =
+              new ProviderMethodBinding(key, providerMethod, strict && !optional);
           switch (provides.type()) {
             case UNIQUE:
               ProviderMethodBinding clobbered = (ProviderMethodBinding) addTo.put(key, binding);
@@ -209,8 +213,9 @@ public final class FullGraphProcessor extends AbstractProcessor {
     private final ExecutableElement method;
     private final Binding<?>[] parameters;
 
-    protected ProviderMethodBinding(String provideKey, ExecutableElement method) {
-      super(provideKey, null, method.getAnnotation(Singleton.class) != null, method.toString());
+    protected ProviderMethodBinding(String provideKey, ExecutableElement method, boolean strict) {
+      super(provideKey, null, method.getAnnotation(Singleton.class) != null, method.toString(),
+          false, strict);
       this.method = method;
       this.parameters = new Binding[method.getParameters().size()];
     }

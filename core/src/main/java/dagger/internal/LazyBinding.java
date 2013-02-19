@@ -28,9 +28,8 @@ final class LazyBinding<T> extends Binding<Lazy<T>> {
   private final String lazyKey;
   private Binding<T> delegate;
 
-  public LazyBinding(String key, Object requiredBy, String lazyKey, boolean entryPoint,
-      boolean strict) {
-    super(key, null, false, requiredBy, entryPoint, strict);
+  public LazyBinding(String key, Object requiredBy, String lazyKey) {
+    super(key, null, false, requiredBy);
     this.lazyKey = lazyKey;
   }
 

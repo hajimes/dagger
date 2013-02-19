@@ -23,8 +23,7 @@ import javax.inject.Provider;
  * Injects a value of a specific type.
  */
 public abstract class Binding<T> implements Provider<T>, MembersInjector<T> {
-  public static final Binding<Object> UNRESOLVED = new Binding<Object>(null, null, false, null,
-      false, false) {
+  public static final Binding<Object> UNRESOLVED = new Binding<Object>(null, null, false, null) {
     @Override public Object get() {
       throw new AssertionError("Unresolved binding should never be called to inject.");
     }
@@ -47,9 +46,9 @@ public abstract class Binding<T> implements Provider<T>, MembersInjector<T> {
   /** Set if {@link ProblemDetector} has confirmed this binding has no circular dependencies. */
   private static final int CYCLE_FREE = 1 << 3;
 
-  private static final int DEPENDED = 1 << 4;
+  private static final int DEPENDED_ON = 1 << 4;
 
-  private static final int ENTRY_POINT = 1 << 5;
+  private static final int NECESSARY = 1 << 5;
 
   /** The key used to provide instances of 'T', or null if this binding cannot provide instances. */
   public final String provideKey;
@@ -59,12 +58,10 @@ public abstract class Binding<T> implements Provider<T>, MembersInjector<T> {
 
   /** Bitfield of states like SINGLETON and LINKED. */
   private int bits;
-  private boolean strict = false;
 
   public final Object requiredBy;
 
-  protected Binding(String provideKey, String membersKey, boolean singleton, Object requiredBy,
-      boolean entryPoint, boolean strict) {
+  protected Binding(String provideKey, String membersKey, boolean singleton, Object requiredBy) {
     if (singleton && provideKey == null) {
       throw new IllegalArgumentException();
     }
@@ -72,8 +69,6 @@ public abstract class Binding<T> implements Provider<T>, MembersInjector<T> {
     this.membersKey = membersKey;
     this.requiredBy = requiredBy;
     this.bits = (singleton ? SINGLETON : 0);
-    this.bits |= (entryPoint ? ENTRY_POINT : 0);
-    this.strict = strict;
   }
 
   /**
@@ -134,24 +129,24 @@ public abstract class Binding<T> implements Provider<T>, MembersInjector<T> {
     this.bits = cycleFree ? (bits | CYCLE_FREE) : (bits & ~CYCLE_FREE);
   }
 
-  public void setDependedOn(boolean depended) {
-    this.bits = depended ? (bits | DEPENDED) : (bits & ~DEPENDED);
+  public void setNecessary(boolean checkNecessity) {
+    this.bits = checkNecessity ? (bits | NECESSARY) : (bits & ~NECESSARY);
+  }
+
+  public boolean necessary() {
+    return (bits & NECESSARY) != 0;
+  }
+
+  public void setDependedOn(boolean necessary) {
+    this.bits = necessary ? (bits | DEPENDED_ON) : (bits & ~DEPENDED_ON);
+  }
+
+  public boolean dependedOn() {
+    return (bits & DEPENDED_ON) != 0;
   }
 
   @Override public String toString() {
     return getClass().getSimpleName()
-            + "[provideKey=\"" + provideKey + "\", memberskey=\"" + membersKey + "\"]";
-  }
-
-  public boolean dependedOn() {
-    return (bits & DEPENDED) != 0;
-  }
-
-  public boolean isEntryPoint() {
-    return (bits & ENTRY_POINT) != 0;
-  }
-
-  public boolean isStrict() {
-    return strict;
+        + "[provideKey=\"" + provideKey + "\", memberskey=\"" + membersKey + "\"]";
   }
 }

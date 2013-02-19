@@ -16,7 +16,6 @@
 package dagger.internal.plugins.reflect;
 
 import dagger.Module;
-import dagger.Optional;
 import dagger.Provides;
 import dagger.internal.Binding;
 import dagger.internal.Keys;
@@ -42,7 +41,7 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
         annotation.overrides(),
         annotation.includes(),
         annotation.complete(),
-        annotation.strict());
+        annotation.necessary());
     this.moduleClass = moduleClass;
   }
 
@@ -60,13 +59,13 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
         Provides provides = method.getAnnotation(Provides.class);
         if (provides != null) {
           String key = Keys.get(method.getGenericReturnType(), method.getAnnotations(), method);
-          boolean optional = method.getAnnotation(Optional.class) != null;
+          boolean necessary = this.necessary && provides.necessary();
           switch (provides.type()) {
             case UNIQUE:
-              handleBindings(bindings, method, key, optional);
+              handleBindings(bindings, method, key, necessary);
               break;
             case SET:
-              handleSetBindings(bindings, method, key, optional);
+              handleSetBindings(bindings, method, key, necessary);
               break;
             default:
               throw new AssertionError("Unknown @Provides type " + provides.type());
@@ -77,8 +76,8 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
   }
 
   private <T> void handleBindings(Map<String, Binding<?>> bindings, Method method, String key,
-      boolean optional) {
-    bindings.put(key, new ProviderMethodBinding<T>(method, key, module, optional));
+      boolean necessary) {
+    bindings.put(key, new ProviderMethodBinding<T>(method, key, module, necessary));
   }
 
   private <T> void handleSetBindings(Map<String, Binding<?>> bindings, Method method, String key,
@@ -112,14 +111,13 @@ final class ReflectiveModuleAdapter extends ModuleAdapter<Object> {
     private Binding<?>[] parameters;
     private final Method method;
     private final Object instance;
-    private final boolean optional;
 
-    public ProviderMethodBinding(Method method, String key, Object instance, boolean optional) {
-      super(key, null, method.isAnnotationPresent(Singleton.class), method, false, strict);
+    public ProviderMethodBinding(Method method, String key, Object instance, boolean necessary) {
+      super(key, null, method.isAnnotationPresent(Singleton.class), method);
       this.method = method;
       this.instance = instance;
-      this.optional = optional;
       method.setAccessible(true);
+      setNecessary(necessary);
     }
 
     @Override public void attach(Linker linker) {

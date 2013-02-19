@@ -248,8 +248,8 @@ public final class InjectProcessor extends AbstractProcessor {
         : null;
     String membersKey = JavaWriter.stringLiteral(GeneratorKeys.rawMembersKey(type.asType()));
     boolean singleton = type.getAnnotation(Singleton.class) != null;
-    writer.emitStatement("super(%s, %s, %s, %s.class, %s, %s)", key, membersKey,
-        (singleton ? "IS_SINGLETON" : "NOT_SINGLETON"), strippedTypeName, false, false);
+    writer.emitStatement("super(%s, %s, %s, %s.class)", key, membersKey,
+        (singleton ? "IS_SINGLETON" : "NOT_SINGLETON"), strippedTypeName);
     writer.endMethod();
     if (dependent) {
       writer.emitEmptyLine();
@@ -276,8 +276,7 @@ public final class InjectProcessor extends AbstractProcessor {
             strippedTypeName);
       }
       if (supertype != null) {
-        writer.emitStatement("%s = (%s) linker.requestBinding(%s, %s.class, false, false, false)",
-        // TODO(kiran) are these right?
+        writer.emitStatement("%s = (%s) linker.requestBinding(%s, %s.class, false)",
             "supertype",
             writer.compressType(JavaWriter.type(Binding.class,
                 CodeGen.rawTypeToString(supertype, '.'))),

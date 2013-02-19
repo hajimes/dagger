@@ -24,8 +24,7 @@ public interface Plugin {
   /**
    * Returns a binding that uses {@code @Inject} annotations.
    */
-  Binding<?> getAtInjectBinding(String key, String className, boolean mustBeInjectable,
-      boolean entryPoint, boolean strict);
+  Binding<?> getAtInjectBinding(String key, String className, boolean mustBeInjectable);
 
   /**
    * Returns a module adapter for {@code module}.

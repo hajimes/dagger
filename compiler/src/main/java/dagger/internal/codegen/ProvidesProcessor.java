@@ -17,7 +17,6 @@ package dagger.internal.codegen;
 
 import com.squareup.java.JavaWriter;
 import dagger.Module;
-import dagger.Optional;
 import dagger.Provides;
 import dagger.internal.Binding;
 import dagger.internal.Linker;
@@ -173,7 +172,7 @@ public final class ProvidesProcessor extends AbstractProcessor {
 
     boolean overrides = (Boolean) module.get("overrides");
     boolean complete = (Boolean) module.get("complete");
-    boolean strict = (Boolean) module.get("strict");
+    boolean necessary = (Boolean) module.get("necessary");
 
     String adapterName = CodeGen.adapterName(type, MODULE_ADAPTER_SUFFIX);
     JavaFileObject sourceFile = processingEnv.getFiler()
@@ -230,7 +229,7 @@ public final class ProvidesProcessor extends AbstractProcessor {
     writer.emitEmptyLine();
     writer.beginMethod(null, adapterName, PUBLIC);
     writer.emitStatement("super(ENTRY_POINTS, STATIC_INJECTIONS, %s /*overrides*/, "
-        + "INCLUDES, %s /*complete*/, %s /*strict*/)", overrides, complete, strict);
+        + "INCLUDES, %s /*complete*/, %s /*necessary*/)", overrides, complete, necessary);
     writer.endMethod();
 
     writer.emitEmptyLine();
@@ -366,15 +365,14 @@ public final class ProvidesProcessor extends AbstractProcessor {
     writer.emitEmptyLine();
     writer.beginMethod(null, className, PUBLIC, moduleType, "module");
     boolean singleton = providerMethod.getAnnotation(Singleton.class) != null;
-    boolean optional = providerMethod.getAnnotation(Optional.class) != null;
-    boolean entryPoint = false; //TODO
+    Provides provides = providerMethod.getAnnotation(Provides.class);
 
     String key = JavaWriter.stringLiteral(GeneratorKeys.get(providerMethod));
     String membersKey = null;
-    writer.emitStatement("super(%s, %s, %s, %s.class, %s /* entryPoint */, %s /* strict */)", key,
-        membersKey, (singleton ? "IS_SINGLETON" : "NOT_SINGLETON"), moduleType, entryPoint,
-        !optional);
+    writer.emitStatement("super(%s, %s, %s, %s.class)", key, membersKey,
+        (singleton ? "IS_SINGLETON" : "NOT_SINGLETON"), moduleType);
     writer.emitStatement("this.module = module");
+    writer.emitStatement("setNecessary(%s)", provides.necessary());
     writer.endMethod();
 
     if (dependent) {

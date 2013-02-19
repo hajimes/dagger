@@ -50,4 +50,5 @@ public @interface Provides {
   }
 
   Type type() default Type.UNIQUE;
+  boolean necessary() default true;
 }

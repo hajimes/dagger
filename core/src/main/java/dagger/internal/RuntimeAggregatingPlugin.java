@@ -107,10 +107,10 @@ public final class RuntimeAggregatingPlugin implements Plugin {
   }
 
   @Override public Binding<?> getAtInjectBinding(String key, String className,
-      boolean mustBeInjectable, boolean entryPoint, boolean strict) {
+      boolean mustBeInjectable) {
     for (int i = 0; i < plugins.length; i++) {
       try {
-        return plugins[i].getAtInjectBinding(key, className, mustBeInjectable, entryPoint, strict);
+        return plugins[i].getAtInjectBinding(key, className, mustBeInjectable);
       } catch (RuntimeException e) {
         if (i == plugins.length - 1) throw e;
         logNotFound("Binding", className, e);

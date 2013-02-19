@@ -107,8 +107,7 @@ public final class Linker {
         }
         try {
           Binding<?> jitBinding =
-              createJitBinding(key, binding.requiredBy, mustBeInjectable, binding.isEntryPoint(),
-                  binding.isStrict());
+              createJitBinding(key, binding.requiredBy, mustBeInjectable);
           // Fail if the type of binding we got wasn't capable of what was requested.
           if (!key.equals(jitBinding.provideKey) && !key.equals(jitBinding.membersKey)) {
             throw new IllegalStateException("Unable to create binding for " + key);
@@ -166,22 +165,20 @@ public final class Linker {
    *   <li>Injections of other types will use the injectable constructors of those classes.
    * </ul>
    */
-  private Binding<?> createJitBinding(String key, Object requiredBy, boolean mustBeInjectable,
-      boolean entryPoint, boolean strict)
+  private Binding<?> createJitBinding(String key, Object requiredBy, boolean mustBeInjectable)
       throws ClassNotFoundException {
     String builtInBindingsKey = Keys.getBuiltInBindingsKey(key);
     if (builtInBindingsKey != null) {
-      return new BuiltInBinding<Object>(key, requiredBy, builtInBindingsKey, entryPoint, strict);
+      return new BuiltInBinding<Object>(key, requiredBy, builtInBindingsKey);
     }
     String lazyKey = Keys.getLazyKey(key);
     if (lazyKey != null) {
-      return new LazyBinding<Object>(key, requiredBy, lazyKey, entryPoint, strict);
+      return new LazyBinding<Object>(key, requiredBy, lazyKey);
     }
 
     String className = Keys.getClassName(key);
     if (className != null && !Keys.isAnnotated(key)) {
-      Binding<?> atInjectBinding = plugin.getAtInjectBinding(key, className, mustBeInjectable,
-          entryPoint, strict);
+      Binding<?> atInjectBinding = plugin.getAtInjectBinding(key, className, mustBeInjectable);
       if (atInjectBinding != null) {
         return atInjectBinding;
       }
@@ -197,7 +194,17 @@ public final class Linker {
    * enqueued to be linked.
    */
   public Binding<?> requestBinding(String key, Object requiredBy) {
-    return requestBinding(key, requiredBy, true, false, false);
+    return requestBinding(key, requiredBy, true, false);
+  }
+
+
+  /**
+   * Returns the binding if it exists immediately. Otherwise this returns
+   * null. If the returned binding didn't exist or was unlinked, it will be
+   * enqueued to be linked.
+   */
+  public Binding<?> requestBinding(String key, Object requiredBy, boolean mustBeInjectable) {
+    return requestBinding(key, requiredBy, mustBeInjectable, false);
   }
 
   /**
@@ -209,9 +216,11 @@ public final class Linker {
    *     injectable. This is necessary for entry points (so that framework code
    *     can inject arbitrary entry points like JUnit test cases or Android
    *     activities) and for supertypes.
+   *
+   * @param necessary
    */
   public Binding<?> requestBinding(String key, Object requiredBy, boolean mustBeInjectable,
-      boolean entryPoint, boolean strict) {
+      boolean necessary) {
     assertLockHeld();
 
     Binding<?> binding = null;
@@ -226,7 +235,8 @@ public final class Linker {
     if (binding == null) {
       // We can't satisfy this binding. Make sure it'll work next time!
       Binding<?> deferredBinding =
-          new DeferredBinding(key, requiredBy, mustBeInjectable, entryPoint, strict);
+          new DeferredBinding(key, requiredBy, mustBeInjectable);
+      deferredBinding.setNecessary(necessary);
       toLink.add(deferredBinding);
       attachSuccess = false;
       return null;
@@ -236,6 +246,7 @@ public final class Linker {
       toLink.add(binding); // This binding was never linked; link it now!
     }
 
+    binding.setNecessary(necessary);
     binding.setDependedOn(true);
     return binding;
   }
@@ -289,8 +300,7 @@ public final class Linker {
     private Object onlyInstance = UNINITIALIZED;
 
     private SingletonBinding(Binding<T> binding) {
-      super(binding.provideKey, binding.membersKey, true, binding.requiredBy,
-          binding.isEntryPoint(), binding.isStrict());
+      super(binding.provideKey, binding.membersKey, true, binding.requiredBy);
       this.binding = binding;
     }
 
@@ -335,9 +345,9 @@ public final class Linker {
   private static class DeferredBinding extends Binding<Object> {
     final String deferredKey;
     final boolean mustBeInjectable;
-    private DeferredBinding(String deferredKey, Object requiredBy, boolean mustBeInjectable,
-        boolean entryPoint, boolean strict) {
-      super(null, null, false, requiredBy, entryPoint, strict);
+
+    private DeferredBinding(String deferredKey, Object requiredBy, boolean mustBeInjectable) {
+      super(null, null, false, requiredBy);
       this.deferredKey = deferredKey;
       this.mustBeInjectable = mustBeInjectable;
     }

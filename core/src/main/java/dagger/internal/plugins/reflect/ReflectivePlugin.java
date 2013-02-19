@@ -31,7 +31,7 @@ import javax.inject.Inject;
  */
 public final class ReflectivePlugin implements Plugin {
   @Override public Binding<?> getAtInjectBinding(String key, String className,
-      boolean mustBeInjectable, boolean entryPoint, boolean strict) {
+      boolean mustBeInjectable) {
     Class<?> c;
     try {
       c = Class.forName(className);
@@ -43,7 +43,7 @@ public final class ReflectivePlugin implements Plugin {
       return null;
     }
 
-    return ReflectiveAtInjectBinding.create(c, mustBeInjectable, entryPoint, strict);
+    return ReflectiveAtInjectBinding.create(c, mustBeInjectable);
   }
 
   @SuppressWarnings("unchecked") // Runtime checks validate that the result type matches 'T'.

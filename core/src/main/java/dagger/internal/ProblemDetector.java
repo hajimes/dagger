@@ -32,7 +32,7 @@ public final class ProblemDetector {
 
   private void detectUnusedBinding(Collection<Binding<?>> bindings) {
     for (Binding<?> binding : bindings) {
-      if (binding.isStrict() && !binding.dependedOn() && !binding.isEntryPoint()) {
+      if (binding.necessary() && !binding.dependedOn()) {
         throw new IllegalStateException(binding.toString() + " didn't have a link requested!");
       }
     }

@@ -58,5 +58,4 @@ Maven プロジェクトで利用する場合、 pom.xml の依存関係を記�
 
  [1]: https://github.com/square/dagger
  [2]: http://hajimes.github.com/dagger/
- [2]: http://github.com/square/dagger/downloads
 

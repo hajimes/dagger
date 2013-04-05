@@ -12,7 +12,7 @@ DIR=temp-dagger-clone
 rm -rf $DIR
 
 # Clone the current repo into temp folder
-git clone git@github.com:square/dagger.git $DIR
+git clone git@github.com:hajimes/dagger.git $DIR
 
 # Move working directory into temp folder
 cd $DIR

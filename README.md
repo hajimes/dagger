@@ -1,22 +1,21 @@
 Dagger
 ======
 
-A fast dependency injector for Android and Java.
+Android でも動作する高速・軽量な依存性注入 Java ライブラリ [Dagger][1] の非公式な日本語情報を提供するプロジェクトです。
 
-For more information please see [the website][1].
+詳細な情報については、 [ユーザーガイド日本語訳][2] を、最新および正確な情報についてはオリジナルのサイトを参照してください。
 
 
-
-Download
+ダウンロード
 --------
 
-You will need to include the `dagger-${dagger.version}.jar` in your
-application's runtime.  In order to activate code generation you will need to
-include `dagger-compiler-${dagger.version}.jar` in your build at compile time.
+アプリケーションのランタイム環境に dagger-${dagger.version}.jar を含める必要があります。
+そのほか、コード生成を有効化するために、コンパイル時に
+dagger-compiler-${dagger.version}.jar を含めてビルドする必要があります。
 
-In a Maven project, one would include the runtime in the dependencies section
-of your `pom.xml` (replacing `${dagger.version}` with the appropriate current
-release), and the `dagger-compiler` artifact as an "optional" dependency:
+Maven プロジェクトで利用する場合、 pom.xml の依存関係を記述する節にランタイムを含め、
+さらに <code>dagger-compiler</code> アーティファクトを "optional" もしくは "provided" の依存性として含めるとよいでしょう。
+（${dagger.version} を、今ある適当なリリースのバージョン番号に置き換えてください）
 
 ```xml
 <dependencies>
@@ -34,11 +33,12 @@ release), and the `dagger-compiler` artifact as an "optional" dependency:
 </dependencies>
 ```
 
-You can also find downloadable .jars on the [GitHub download page][2].
+また、ダウンロード可能な .jar ファイルは、 Maven のセントラルリポジトリにあります。
+[Dagger](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.squareup%22%20dagger) と
+[JavaWriter](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22javawriter%22) の両方が必要になります。
 
 
-
-License
+ライセンス
 -------
 
     Copyright 2012 Square, Inc.
@@ -56,6 +56,7 @@ License
     limitations under the License.
 
 
-
- [1]: http://square.github.com/dagger/
+ [1]: https://github.com/square/dagger
+ [2]: http://hajimes.github.com/dagger/
  [2]: http://github.com/square/dagger/downloads
+
